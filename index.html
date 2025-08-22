@@ -65,13 +65,57 @@
                 display: block;
             }
 
+            /* 控制按钮 */
+            #viewerControls {
+                margin: 10px 0;
+                display: flex;
+                gap: 10px;
+                position: relative;
+                z-index: 1;
+            }
+
+            #viewerControls button {
+                padding: 8px 12px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                background: #4a90e2;
+                color: white;
+                font-weight: bold;
+                transition: 0.2s;
+            }
+
+            #viewerControls button:hover {
+                background: #357abd;
+            }
+
             #viewer {
                 width: 100%;
                 height: 70vh;
                 border: none;
-                margin-top: 15px;
                 border-radius: 8px;
                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                z-index: 0;
+            }
+
+            /* 全屏 iframe */
+            #viewer.fullscreen {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                z-index: 9999;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            /* 全屏时按钮浮在 iframe 上方 */
+            #viewerControls.fullscreen {
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                z-index: 10000;
             }
 
             @media (max-width: 600px) {
@@ -91,16 +135,26 @@
         <header>21班作业大全 (点击按钮即可打开)</header>
         <main>
             <ul id="fileList"></ul>
+            <div id="viewerControls">
+                <button id="fullscreenBtn">全屏显示</button>
+                <button id="exitFullscreenBtn" style="display: none">
+                    退出全屏
+                </button>
+            </div>
             <iframe id="viewer">请选择一个文档以查看</iframe>
         </main>
 
         <script>
             const fileListEl = document.getElementById("fileList");
             const viewerEl = document.getElementById("viewer");
+            const fullscreenBtn = document.getElementById("fullscreenBtn");
+            const exitFullscreenBtn =
+                document.getElementById("exitFullscreenBtn");
+            const viewerControls = document.getElementById("viewerControls");
 
             let currentActive = null;
 
-            // 加载静态 JSON 文件列表
+            // 加载文件列表
             fetch("files/list.json")
                 .then((res) => res.json())
                 .then((files) => {
@@ -110,9 +164,8 @@
                         const title = file.replace(/\.docx$/i, "");
                         a.textContent = title;
 
-                        // 点击事件：打开 DOCX 并高亮按钮
+                        // 点击事件：打开 DOCX 并高亮
                         li.onclick = () => {
-                            // 打开文档
                             const fileUrl =
                                 window.location.origin + "/files/" + file;
                             const encodedUrl = encodeURIComponent(fileUrl);
@@ -133,6 +186,26 @@
                     fileListEl.innerHTML = "<li>加载文件列表失败</li>";
                     console.error(err);
                 });
+
+            // 全屏显示
+            fullscreenBtn.onclick = () => {
+                if (!viewerEl.src || viewerEl.src === "") {
+                    alert("请先选择一个文档再全屏显示");
+                    return;
+                }
+                viewerEl.classList.add("fullscreen");
+                fullscreenBtn.style.display = "none";
+                exitFullscreenBtn.style.display = "inline-block";
+                viewerControls.classList.add("fullscreen");
+            };
+
+            // 退出全屏
+            exitFullscreenBtn.onclick = () => {
+                viewerEl.classList.remove("fullscreen");
+                exitFullscreenBtn.style.display = "none";
+                fullscreenBtn.style.display = "inline-block";
+                viewerControls.classList.remove("fullscreen");
+            };
         </script>
     </body>
 </html>
