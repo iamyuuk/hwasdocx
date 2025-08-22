@@ -5,21 +5,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>21班作业大全</title>
         <style>
-            #fileList li.active {
-                background-color: #4a90e2;
-                color: white;
-                transform: translateY(-2px);
-            }
-            #fileList li.active a {
-                color: white;
-            }
-
             body {
                 font-family: Arial, sans-serif;
                 margin: 0;
                 padding: 0;
                 background: #f9f9f9;
             }
+
             header {
                 background: #4a90e2;
                 color: white;
@@ -27,11 +19,13 @@
                 text-align: center;
                 font-size: 1.5em;
             }
+
             main {
                 display: flex;
                 flex-direction: column;
                 padding: 10px;
             }
+
             #fileList {
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -40,24 +34,37 @@
                 list-style: none;
                 margin: 0;
             }
+
             #fileList li {
                 background: white;
                 border-radius: 8px;
                 padding: 15px;
                 text-align: center;
                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-                transition: transform 0.2s;
+                transition:
+                    transform 0.2s,
+                    box-shadow 0.2s;
+                cursor: pointer;
             }
+
             #fileList li:hover {
                 transform: translateY(-3px);
                 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
             }
+
+            #fileList li.active {
+                background-color: #4a90e2;
+                color: white;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+
             #fileList li a {
                 text-decoration: none;
-                color: #333;
+                color: inherit;
                 font-weight: bold;
                 display: block;
             }
+
             #viewer {
                 width: 100%;
                 height: 70vh;
@@ -66,6 +73,7 @@
                 border-radius: 8px;
                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             }
+
             @media (max-width: 600px) {
                 #fileList {
                     grid-template-columns: repeat(
@@ -80,7 +88,7 @@
         </style>
     </head>
     <body>
-        <header>21班作业大全(点击按钮即可打开)</header>
+        <header>21班作业大全 (点击按钮即可打开)</header>
         <main>
             <ul id="fileList"></ul>
             <iframe id="viewer">请选择一个文档以查看</iframe>
@@ -90,6 +98,8 @@
             const fileListEl = document.getElementById("fileList");
             const viewerEl = document.getElementById("viewer");
 
+            let currentActive = null;
+
             // 加载静态 JSON 文件列表
             fetch("files/list.json")
                 .then((res) => res.json())
@@ -97,10 +107,24 @@
                     files.forEach((file) => {
                         const li = document.createElement("li");
                         const a = document.createElement("a");
-                        // 从文件名生成标题（去掉后缀）
                         const title = file.replace(/\.docx$/i, "");
                         a.textContent = title;
-                        a.onclick = () => openDoc(file);
+
+                        // 点击事件：打开 DOCX 并高亮按钮
+                        li.onclick = () => {
+                            // 打开文档
+                            const fileUrl =
+                                window.location.origin + "/files/" + file;
+                            const encodedUrl = encodeURIComponent(fileUrl);
+                            viewerEl.src = `https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}`;
+
+                            // 高亮当前按钮
+                            if (currentActive)
+                                currentActive.classList.remove("active");
+                            li.classList.add("active");
+                            currentActive = li;
+                        };
+
                         li.appendChild(a);
                         fileListEl.appendChild(li);
                     });
@@ -109,38 +133,6 @@
                     fileListEl.innerHTML = "<li>加载文件列表失败</li>";
                     console.error(err);
                 });
-            // 高亮显示
-            let currentActive = null;
-
-            files.forEach((file) => {
-                const li = document.createElement("li");
-                const a = document.createElement("a");
-                const title = file.replace(/\.docx$/i, "");
-                a.textContent = title;
-
-                a.onclick = () => {
-                    openDoc(file);
-
-                    // 移除上一个高亮
-                    if (currentActive) {
-                        currentActive.classList.remove("active");
-                    }
-
-                    // 当前按钮高亮
-                    li.classList.add("active");
-                    currentActive = li;
-                };
-
-                li.appendChild(a);
-                fileListEl.appendChild(li);
-            });
-
-            // 打开 Office Online Viewer
-            function openDoc(filename) {
-                const fileUrl = window.location.origin + "/files/" + filename;
-                const encodedUrl = encodeURIComponent(fileUrl);
-                viewerEl.src = `https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}`;
-            }
         </script>
     </body>
 </html>
