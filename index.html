@@ -5,6 +5,15 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>21班作业大全</title>
         <style>
+            #fileList li.active {
+                background-color: #4a90e2;
+                color: white;
+                transform: translateY(-2px);
+            }
+            #fileList li.active a {
+                color: white;
+            }
+
             body {
                 font-family: Arial, sans-serif;
                 margin: 0;
@@ -100,6 +109,31 @@
                     fileListEl.innerHTML = "<li>加载文件列表失败</li>";
                     console.error(err);
                 });
+            // 高亮显示
+            let currentActive = null;
+
+            files.forEach((file) => {
+                const li = document.createElement("li");
+                const a = document.createElement("a");
+                const title = file.replace(/\.docx$/i, "");
+                a.textContent = title;
+
+                a.onclick = () => {
+                    openDoc(file);
+
+                    // 移除上一个高亮
+                    if (currentActive) {
+                        currentActive.classList.remove("active");
+                    }
+
+                    // 当前按钮高亮
+                    li.classList.add("active");
+                    currentActive = li;
+                };
+
+                li.appendChild(a);
+                fileListEl.appendChild(li);
+            });
 
             // 打开 Office Online Viewer
             function openDoc(filename) {
